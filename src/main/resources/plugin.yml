@@ -1,0 +1,7 @@
+name: Duraitem
+version: ${project.version}
+main: com.qvarnstrom.tech.duraitem.Duraitem
+api-version: 1.16
+authors: [ zeppsan ]
+description: Calulates the amount of uses that are left on a tool and display it as a lore
+website: https://qvarnstrom.tech
