@@ -7,10 +7,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,11 +42,27 @@ public final class Duraitem extends JavaPlugin implements Listener {
 
                 ItemMeta meta = itemInHand.getItemMeta();
                 List<String> lore = new LinkedList<String>();
+                lore.add(" ");
                 lore.add(getDurabilityString(maxdurability, durability));
                 meta.setLore(lore);
                 itemInHand.setItemMeta(meta);
                 player.getInventory().setItemInMainHand(itemInHand);
             }
+        }
+    }
+
+    @EventHandler
+    public void CreateItemEvent(CraftItemEvent event){
+        if(isTool(event.getInventory().getResult().getType())){
+            short durability = event.getInventory().getResult().getData().getItemType().getMaxDurability();
+            ItemMeta meta = event.getInventory().getResult().getItemMeta();
+
+            List<String> lores = new LinkedList<String>();
+            lores.add(" ");
+            lores.add(ChatColor.translateAlternateColorCodes('&', "&7Durability: " + durability + " / " + durability));
+            meta.setLore(lores);
+
+            event.getInventory().getResult().setItemMeta(meta);
         }
     }
 
@@ -56,7 +75,7 @@ public final class Duraitem extends JavaPlugin implements Listener {
         else
             color = "&c";
 
-        String result ="&7Durability: " +maxDurability + " / " + color + (maxDurability - durability);
+        String result ="&7Durability: "+ color + (maxDurability - durability) + " / " + maxDurability;
         return ChatColor.translateAlternateColorCodes('&', result);
     }
 
