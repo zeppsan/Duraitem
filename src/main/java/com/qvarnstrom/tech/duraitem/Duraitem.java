@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,29 +32,8 @@ public final class Duraitem extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void BlockBreakEvent(BlockBreakEvent event){
-        // Check if the user is holding a tool
-        Player player = event.getPlayer();
-        ItemStack itemInHand = event.getPlayer().getInventory().getItemInMainHand();
-        if(isTool(itemInHand.getType())){
-            if(!itemInHand.getItemMeta().hasDisplayName()){
-                short durability = itemInHand.getDurability();
-                short maxdurability = itemInHand.getData().getItemType().getMaxDurability();
-
-                ItemMeta meta = itemInHand.getItemMeta();
-                List<String> lore = new LinkedList<String>();
-                lore.add(" ");
-                lore.add(getDurabilityString(maxdurability, durability));
-                meta.setLore(lore);
-                itemInHand.setItemMeta(meta);
-                player.getInventory().setItemInMainHand(itemInHand);
-            }
-        }
-    }
-
-    @EventHandler
     public void CreateItemEvent(CraftItemEvent event){
-        if(isTool(event.getInventory().getResult().getType())){
+        if(validItem(event.getCurrentItem())){
             short durability = event.getInventory().getResult().getData().getItemType().getMaxDurability();
             ItemMeta meta = event.getInventory().getResult().getItemMeta();
 
@@ -64,6 +44,37 @@ public final class Duraitem extends JavaPlugin implements Listener {
 
             event.getInventory().getResult().setItemMeta(meta);
         }
+    }
+
+    private boolean validItem(ItemStack item){
+        if(item.getType().isItem()){
+            if(item.getType().getMaxDurability() > (short) 1){
+                if(!item.getItemMeta().hasDisplayName()){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @EventHandler
+    public void usedItem(PlayerInteractEvent event){
+        // Get the player
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        ItemMeta meta = item.getItemMeta();
+
+        if(validItem(item)){
+            short durability = item.getDurability();
+            short maxdurability = item.getData().getItemType().getMaxDurability();
+            List<String> lore = new LinkedList<String>();
+            lore.add(" ");
+            lore.add(getDurabilityString(maxdurability, durability));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            player.getInventory().setItemInMainHand(item);
+        }
+
     }
 
     private String getDurabilityString(short maxDurability, short durability){
