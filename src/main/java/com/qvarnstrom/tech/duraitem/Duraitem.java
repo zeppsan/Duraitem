@@ -33,25 +33,25 @@ public final class Duraitem extends JavaPlugin implements Listener {
 
     @EventHandler
     public void CreateItemEvent(CraftItemEvent event){
-        if(validItem(event.getCurrentItem())){
-            short durability = event.getInventory().getResult().getData().getItemType().getMaxDurability();
-            ItemMeta meta = event.getInventory().getResult().getItemMeta();
+        if(hasPermission((Player)event.getWhoClicked())){
+            if(validItem(event.getCurrentItem())){
+                short durability = event.getInventory().getResult().getData().getItemType().getMaxDurability();
+                ItemMeta meta = event.getInventory().getResult().getItemMeta();
 
-            List<String> lores = new LinkedList<String>();
-            lores.add(" ");
-            lores.add(ChatColor.translateAlternateColorCodes('&', "&7Durability: " + durability + " / " + durability));
-            meta.setLore(lores);
+                List<String> lores = new LinkedList<String>();
+                lores.add(" ");
+                lores.add(ChatColor.translateAlternateColorCodes('&', "&7Durability: " + durability + " / " + durability));
+                meta.setLore(lores);
 
-            event.getInventory().getResult().setItemMeta(meta);
+                event.getInventory().getResult().setItemMeta(meta);
+            }
         }
     }
 
     private boolean validItem(ItemStack item){
         if(item.getType().isItem()){
             if(item.getType().getMaxDurability() > (short) 1){
-                if(!item.getItemMeta().hasDisplayName()){
-                    return true;
-                }
+                return true;
             }
         }
         return false;
@@ -60,17 +60,38 @@ public final class Duraitem extends JavaPlugin implements Listener {
     @EventHandler
     public void usedItem(PlayerInteractEvent event){
         // Get the player
+
         Player player = event.getPlayer();
+
+
+        if(!hasPermission(player)){
+            return;
+        }
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta meta = item.getItemMeta();
 
         if(validItem(item)){
             short durability = item.getDurability();
             short maxdurability = item.getData().getItemType().getMaxDurability();
-            List<String> lore = new LinkedList<String>();
-            lore.add(" ");
-            lore.add(getDurabilityString(maxdurability, durability));
-            meta.setLore(lore);
+
+            List<String> lores = meta.getLore();
+            int size = lores.size();
+
+            System.out.println(size);
+            if(size > 0){
+                for(int i = 0; i < size; i++){
+                    System.out.println(lores.get(i));
+                    if(lores.get(i).contains("Durability")){
+                        lores.remove(i);
+                        lores.add(getDurabilityString(maxdurability, durability));
+                    }
+                }
+            } else {
+                lores.add(" ");
+                lores.add(getDurabilityString(maxdurability, durability));
+            }
+
+            meta.setLore(lores);
             item.setItemMeta(meta);
             player.getInventory().setItemInMainHand(item);
         }
@@ -103,5 +124,9 @@ public final class Duraitem extends JavaPlugin implements Listener {
         if(toolName.endsWith("SHEARS"))
             return true;
         return false;
+    }
+
+    private boolean hasPermission(Player player){
+        return true;
     }
 }
